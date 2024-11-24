@@ -7,5 +7,7 @@ import tailwind from '@astrojs/tailwind';
 
 // https://astro.build/config
 export default defineConfig({
+  site: 'https://kion-dgl.github.io',
+  base: 'MegaManLegends2-VRM',
   integrations: [lit(), tailwind()]
 });
