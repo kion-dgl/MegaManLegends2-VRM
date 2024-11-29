@@ -6,31 +6,23 @@ interface Character {
   file: string;
 }
 
-interface CharacterSelectProps {
-  characters?: Character[];
-  onSelect?: (character: Character) => void;
-  className?: string;
-}
+const characters = [
+  { name: "MegaMan", file: "PL00.BIN" },
+  { name: "Roll", file: "PL01.BIN" },
+  { name: "Tron", file: "PL02.BIN" }
+]
 
-export function CharacterSelect({ 
-  characters = [
-    { name: "MegaMan", file: "PL00.BIN" },
-    { name: "Roll", file: "PL01.BIN" },
-    { name: "Tron", file: "PL02.BIN" }
-  ],
-  onSelect,
-  className = ''
-}: CharacterSelectProps) {
+export function CharacterSelect() {
   const [isOpen, setIsOpen] = useState(false);
   const [selected, setSelected] = useState<Character | null>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
+
   const handleSelect = useCallback((character: Character) => {
     setSelected(character);
     setIsOpen(false);
-    console.log(character.file);
-    onSelect?.(character);
-  }, [onSelect]);
+    console.log(character)
+  }, []);
 
   // Handle clicking outside of dropdown
   useEffect(() => {
@@ -45,9 +37,9 @@ export function CharacterSelect({
   }, []);
 
   return (
-    <div 
+    <div
       ref={dropdownRef}
-      className={`absolute top-[5px] left-[5px] w-[240px] z-50 ${className}`}
+      className={`absolute top-[5px] left-[5px] w-[240px] z-50`}
     >
       <div className="relative">
         {/* Selected Value Button */}

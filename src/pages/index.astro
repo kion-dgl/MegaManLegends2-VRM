@@ -1,24 +1,22 @@
 ---
-import { ThreeJSCanvas } from '../components/ThreeJSCanvas';
-import { CharacterSelect } from '../components/CharacterSelect';
+import { ThreeJSCanvas } from "../components/ThreeJSCanvas";
+import { CharacterSelect } from "../components/CharacterSelect";
 ---
 
 <html lang="en">
 	<head>
 		<meta charset="utf-8" />
-		<link rel="icon" type="image/svg+xml" href="/MegaManLegends2-VRM/favicon.svg" />
+		<link
+			rel="icon"
+			type="image/svg+xml"
+			href="/MegaManLegends2-VRM/favicon.svg"
+		/>
 		<meta name="viewport" content="width=device-width" />
 		<meta name="generator" content={Astro.generator} />
 		<title>Astro</title>
 	</head>
 	<body>
-		<CharacterSelect
-			client:load
-			onSelect={(character) => {
-		  		// Handle character selection
-		  		console.log(character.file);
-			}}
-	  	/>
-		<ThreeJSCanvas client:load/>
+		<CharacterSelect client:load />
+		<ThreeJSCanvas client:load />
 	</body>
 </html>
