@@ -1,5 +1,5 @@
 ---
-import { ThreeJSCanvas } from "../components/ThreeJSCanvas";
+import ThreeJSCanvas from "../components/ThreeJSCanvas.astro";
 import { CharacterSelect } from "../components/CharacterSelect";
 ---
 
@@ -15,8 +15,8 @@ import { CharacterSelect } from "../components/CharacterSelect";
 		<meta name="generator" content={Astro.generator} />
 		<title>Astro</title>
 	</head>
-	<body>
+	<body class="bg-gradient-to-b from-gray-800 to-cyan-600">
 		<CharacterSelect client:load />
-		<ThreeJSCanvas client:load />
+		<ThreeJSCanvas />
 	</body>
 </html>
