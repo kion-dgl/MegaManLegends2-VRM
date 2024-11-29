@@ -1,5 +1,6 @@
 import { h } from 'preact';
 import { useState, useCallback, useRef, useEffect } from 'preact/hooks';
+import { selectedCharacter } from '../stores/characterStore';
 
 interface Character {
   name: string;
@@ -22,6 +23,7 @@ export function CharacterSelect() {
     setSelected(character);
     setIsOpen(false);
     console.log(character)
+    selectedCharacter.set(character);
   }, []);
 
   // Handle clicking outside of dropdown

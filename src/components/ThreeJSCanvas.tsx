@@ -3,13 +3,16 @@ import { useEffect, useRef } from 'preact/hooks';
 import * as THREE from 'three';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 
+import { selectedCharacter } from '../stores/characterStore';
+
+
 interface ThreeJSCanvasProps {
   className?: string;
 }
 
 const ThreeJSCanvas = ({ className }: ThreeJSCanvasProps) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  
+
   // Refs to store Three.js objects
   const sceneRef = useRef<THREE.Scene | null>(null);
   const cameraRef = useRef<THREE.PerspectiveCamera | null>(null);
@@ -22,9 +25,15 @@ const ThreeJSCanvas = ({ className }: ThreeJSCanvasProps) => {
   useEffect(() => {
     if (!canvasRef.current) return;
 
+    const unsubscribe = selectedCharacter.subscribe((character) => {
+      if (character) {
+        console.log("updating new character: ", character.name)
+      }
+    });
+
     // Initialize scene
     sceneRef.current = new THREE.Scene();
-    
+
     // Initialize camera
     cameraRef.current = new THREE.PerspectiveCamera(
       75,
@@ -103,21 +112,21 @@ const ThreeJSCanvas = ({ className }: ThreeJSCanvasProps) => {
       if (!sceneRef.current || !cameraRef.current || !rendererRef.current || !cubeRef.current || !controlsRef.current) return;
 
       animationFrameRef.current = requestAnimationFrame(animate);
-      
+
       // Rotate cube
       cubeRef.current.rotation.x += 0.01;
       cubeRef.current.rotation.y += 0.01;
-      
+
       controlsRef.current.update();
       rendererRef.current.render(sceneRef.current, cameraRef.current);
     };
-    
+
     animate();
 
     // Handle window resize
     const handleResize = () => {
       if (!cameraRef.current || !rendererRef.current) return;
-      
+
       cameraRef.current.aspect = window.innerWidth / window.innerHeight;
       cameraRef.current.updateProjectionMatrix();
       rendererRef.current.setSize(window.innerWidth, window.innerHeight);
