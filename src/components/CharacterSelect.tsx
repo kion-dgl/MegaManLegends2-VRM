@@ -8,7 +8,7 @@ interface Character {
 }
 
 const characters = [
-  { name: "MegaMan", file: "PL00.BIN" },
+  { name: "MegaMan", file: "PL00P000.BIN" },
   { name: "Roll", file: "PL01.BIN" },
   { name: "Tron", file: "PL02.BIN" }
 ]

@@ -2,9 +2,8 @@ import { h } from 'preact';
 import { useEffect, useRef } from 'preact/hooks';
 import * as THREE from 'three';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
-
 import { selectedCharacter } from '../stores/characterStore';
-
+import { loadCharacter } from '../load/DashLoader';
 
 interface ThreeJSCanvasProps {
   className?: string;
@@ -25,10 +24,17 @@ const ThreeJSCanvas = ({ className }: ThreeJSCanvasProps) => {
   useEffect(() => {
     if (!canvasRef.current) return;
 
-    const unsubscribe = selectedCharacter.subscribe((character) => {
-      if (character) {
-        console.log("updating new character: ", character.name)
+    const unsubscribe = selectedCharacter.subscribe(async (character) => {
+      if (!character) {
+        return;
       }
+      const meshes = await loadCharacter(character.file);
+      console.log(meshes);
+      sceneRef.current?.remove(cubeRef.current)
+      cubeRef.current.rotation.x += Math.PI;
+      cubeRef.current.position.y += 10;
+      cubeRef.current = meshes[0]
+      sceneRef.current?.add(meshes[0])
     });
 
     // Initialize scene
@@ -114,8 +120,8 @@ const ThreeJSCanvas = ({ className }: ThreeJSCanvasProps) => {
       animationFrameRef.current = requestAnimationFrame(animate);
 
       // Rotate cube
-      cubeRef.current.rotation.x += 0.01;
-      cubeRef.current.rotation.y += 0.01;
+      // cubeRef.current.rotation.x += 0.01;
+      // cubeRef.current.rotation.y += 0.01;
 
       controlsRef.current.update();
       rendererRef.current.render(sceneRef.current, cameraRef.current);
@@ -140,6 +146,7 @@ const ThreeJSCanvas = ({ className }: ThreeJSCanvasProps) => {
       if (animationFrameRef.current) {
         cancelAnimationFrame(animationFrameRef.current);
       }
+      unsubscribe();
       rendererRef.current?.dispose();
       controlsRef.current?.dispose();
     };
