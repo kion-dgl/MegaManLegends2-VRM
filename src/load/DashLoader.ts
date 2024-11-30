@@ -149,9 +149,13 @@ const loadCharacter = async (filename: string) => {
     const { parent, name } = boneDef;
     const bone = new Bone();
     bone.name = name;
-    bone.position.x = view.getInt32(ofs + 0, true) * SCALE;
-    bone.position.y = view.getInt32(ofs + 2, true) * SCALE;
-    bone.position.z = view.getInt32(ofs + 4, true) * SCALE;
+    bone.position.x = view.getInt16(ofs + 0, true) * SCALE;
+    bone.position.y = view.getInt16(ofs + 2, true) * SCALE;
+    bone.position.z = view.getInt16(ofs + 4, true) * SCALE;
+
+    console.log(bone.position);
+
+    ofs += 6;
     if (bones[parent]) {
       bones[parent].add(bone);
     }
@@ -229,7 +233,7 @@ const loadCharacter = async (filename: string) => {
     return mesh;
   });
 
-  return bodyMesh;
+  return { skin };
 };
 
 const readStrips = (view: DataView, stripOfs: number, names: string[]) => {

@@ -18,7 +18,8 @@ const readBones = () => {
         y: 0.90625,
         z: -1.1098361617272889e-16,
       },
-      name: "bone_000",
+      id: 0,
+      name: "root",
       parent: -1,
     },
     {
@@ -27,7 +28,8 @@ const readBones = () => {
         y: 0.2575,
         z: -3.153465507804434e-17,
       },
-      name: "bone_001",
+      id: 1,
+      name: "head",
       parent: 0,
     },
     {
@@ -36,7 +38,8 @@ const readBones = () => {
         y: 0.1625,
         z: -0.01250000000000002,
       },
-      name: "bone_002",
+      id: 2,
+      name: "rght_shoulder",
       parent: 0,
     },
     {
@@ -45,7 +48,8 @@ const readBones = () => {
         y: -0.2,
         z: 2.4492935982947065e-17,
       },
-      name: "bone_003",
+      id: 3,
+      name: "right_elbow",
       parent: 2,
     },
     {
@@ -54,7 +58,8 @@ const readBones = () => {
         y: -0.1525,
         z: 1.8675863686997135e-17,
       },
-      name: "bone_004",
+      id: 4,
+      name: "right_hand",
       parent: 3,
     },
     {
@@ -63,7 +68,8 @@ const readBones = () => {
         y: 0.1625,
         z: -0.01250000000000002,
       },
-      name: "bone_005",
+      id: 5,
+      name: "left_shoulder",
       parent: 0,
     },
     {
@@ -72,7 +78,8 @@ const readBones = () => {
         y: -0.2,
         z: 2.4492935982947065e-17,
       },
-      name: "bone_006",
+      id: 6,
+      name: "left_elbow",
       parent: 5,
     },
     {
@@ -81,7 +88,8 @@ const readBones = () => {
         y: -0.1525,
         z: 1.8675863686997135e-17,
       },
-      name: "bone_007",
+      id: 7,
+      name: "left_hand",
       parent: 6,
     },
     {
@@ -90,7 +98,8 @@ const readBones = () => {
         y: 0,
         z: 0,
       },
-      name: "bone_008",
+      id: 8,
+      name: "hips",
       parent: 0,
     },
     {
@@ -99,7 +108,8 @@ const readBones = () => {
         y: -0.09125,
         z: 1.1174902042219598e-17,
       },
-      name: "bone_009",
+      id: 9,
+      name: "right_leg",
       parent: 8,
     },
     {
@@ -108,7 +118,8 @@ const readBones = () => {
         y: -0.28125,
         z: 3.444319122601931e-17,
       },
-      name: "bone_010",
+      id: 10,
+      name: "right_knee",
       parent: 9,
     },
     {
@@ -117,7 +128,8 @@ const readBones = () => {
         y: -0.34875,
         z: 4.2709557120263944e-17,
       },
-      name: "bone_011",
+      id: 11,
+      name: "right_foot",
       parent: 10,
     },
     {
@@ -126,7 +138,8 @@ const readBones = () => {
         y: -0.09125,
         z: 1.1174902042219598e-17,
       },
-      name: "bone_012",
+      id: 12,
+      name: "left_leg",
       parent: 8,
     },
     {
@@ -135,7 +148,8 @@ const readBones = () => {
         y: -0.28125,
         z: 3.444319122601931e-17,
       },
-      name: "bone_013",
+      id: 13,
+      name: "left_knee",
       parent: 12,
     },
     {
@@ -144,7 +158,8 @@ const readBones = () => {
         y: -0.34875,
         z: 4.2709557120263944e-17,
       },
-      name: "bone_014",
+      id: 14,
+      name: "left_foot",
       parent: 13,
     },
   ];
@@ -258,22 +273,25 @@ scene.add(gridHelper);
 selectedCharacter.subscribe(async (character) => {
   if (!character) return;
 
-  const bodyMesh = await loadCharacter(character.file);
+  const { skin } = await loadCharacter(character.file);
 
   while (meshes.length) {
     const m = meshes.pop();
     m && scene.remove(m);
   }
 
-  scene.add(bodyMesh[0]);
-  meshes.push(bodyMesh[0]);
-  meshes.push(skin);
+  const parentGroup = new THREE.Group();
+  const helper = new THREE.SkeletonHelper(skin);
+  // parentGroup.add(skin);
+  parentGroup.add(helper);
+
+  parentGroup.rotation.x = Math.PI;
+  scene.add(parentGroup);
 });
 
 // Helper
-const skin = readBones();
-const helper = new THREE.SkeletonHelper(skin);
-scene.add(helper);
+// const skin = readBones();
+
 
 // Handle window resize
 const animate = () => {
