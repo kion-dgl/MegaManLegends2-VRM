@@ -273,29 +273,15 @@ scene.add(gridHelper);
 selectedCharacter.subscribe(async (character) => {
   if (!character) return;
 
-  const { skin, bodyMesh } = await loadCharacter(character.file);
-
-  console.log('body mesh')
-  console.log(bodyMesh);
+  const group = await loadCharacter(character.file);
 
   while (meshes.length) {
     const m = meshes.pop();
     m && scene.remove(m);
   }
 
-  const parentGroup = new THREE.Group();
-  const helper = new THREE.SkeletonHelper(skin);
-  // parentGroup.add(skin);
-  parentGroup.add(helper);
 
-  skin.children[0].add(bodyMesh[0])
-  parentGroup.add(bodyMesh[0]);
-  bodyMesh[0].position.x = skin.children[0].position.x;
-  bodyMesh[0].position.y = skin.children[0].position.y;
-  bodyMesh[0].position.z = skin.children[0].position.z;
-
-  parentGroup.rotation.x = Math.PI;
-  scene.add(parentGroup);
+  scene.add(group);
 });
 
 // Helper

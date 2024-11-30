@@ -10,6 +10,8 @@ import {
   DoubleSide,
   Skeleton,
   SkinnedMesh,
+  SkeletonHelper,
+  Group
 } from "three";
 
 // Mesh Header Type
@@ -35,7 +37,7 @@ type Indice = {
 // Global Scale
 const SCALE = 0.00125;
 
-const loadCharacter = async (filename: string) => {
+const loadCharacter = async (filename: string): Promise<Group> => {
   const req = await fetch(`/MegaManLegends2-VRM/${filename}`);
   if (!req.ok) {
     // Handle HTTP errors
@@ -66,7 +68,7 @@ const loadCharacter = async (filename: string) => {
     {
       id: 2,
       parent: 0,
-      name: "rght_shoulder",
+      name: "right_shoulder",
     },
     // Right elbow
     {
@@ -233,7 +235,57 @@ const loadCharacter = async (filename: string) => {
     return mesh;
   });
 
-  return { skin, bodyMesh };
+
+  // Create group
+  const group = new Group();
+  const helper = new SkeletonHelper(skin);
+  // parentGroup.add(skin);
+  group.add(helper);
+
+  // Body
+  const root = skin.children[0]
+  root.add(bodyMesh[0])
+  bodyMesh[0].position.x = root.position.x;
+  bodyMesh[0].position.y = root.position.y;
+  bodyMesh[0].position.z = root.position.z;
+
+  // Hips
+  const hips = root.children[3]
+  hips.add(bodyMesh[1])
+  hips.getWorldPosition(bodyMesh[1].position);
+
+  // Right Leg
+  const rightLeg = hips.children[0];
+  rightLeg.add(bodyMesh[2])
+  rightLeg.getWorldPosition(bodyMesh[2].position);
+
+  // Right Knee
+  const rightKnee = rightLeg.children[0];
+  rightKnee.add(bodyMesh[3])
+  rightKnee.getWorldPosition(bodyMesh[3].position);
+
+  // Left Leg
+  const leftLeg = hips.children[1];
+  leftLeg.add(bodyMesh[4])
+  leftLeg.getWorldPosition(bodyMesh[4].position);
+
+  // Right Knee
+  const leftKnee = leftLeg.children[0];
+  leftKnee.add(bodyMesh[5])
+  leftKnee.getWorldPosition(bodyMesh[5].position);
+
+  console.log('hit to be square')
+  console.log(hips.children)
+
+  group.add(bodyMesh[0]);
+  group.add(bodyMesh[1]);
+  group.add(bodyMesh[2]);
+  group.add(bodyMesh[3]);
+  group.add(bodyMesh[4]);
+  group.add(bodyMesh[5]);
+
+  group.rotation.x = Math.PI;
+  return group;
 };
 
 const readStrips = (view: DataView, stripOfs: number, names: string[]) => {
