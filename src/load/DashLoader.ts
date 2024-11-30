@@ -233,7 +233,7 @@ const loadCharacter = async (filename: string) => {
     return mesh;
   });
 
-  return { skin };
+  return { skin, bodyMesh };
 };
 
 const readStrips = (view: DataView, stripOfs: number, names: string[]) => {
