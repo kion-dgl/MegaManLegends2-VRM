@@ -7,6 +7,7 @@ import {
   Float32BufferAttribute,
   BufferAttribute,
   MeshNormalMaterial,
+  MeshBasicMaterial,
   DoubleSide,
   Skeleton,
   SkinnedMesh,
@@ -176,7 +177,7 @@ const createMesh = (strip: MeshHeader, view: DataView) => {
   geometry.setIndex(indices);
   geometry.computeVertexNormals();
 
-  const material = new MeshNormalMaterial();
+  const material = new MeshBasicMaterial();
   const mesh = new Mesh(geometry, material);
   return mesh;
 }

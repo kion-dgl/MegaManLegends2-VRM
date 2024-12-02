@@ -2,6 +2,7 @@ import * as THREE from "three";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
 import { selectedCharacter } from "../stores/characterStore";
 import { loadCharacter } from "../load/DashLoader";
+import { GLTFExporter } from 'three/examples/jsm/exporters/GLTFExporter';
 
 const scene = new THREE.Scene();
 const meshes: THREE.Mesh[] = [];
@@ -9,189 +10,6 @@ const canvas = document.getElementById("threejs-canvas");
 if (!canvas) {
   throw new Error("canvas element not found");
 }
-
-const readBones = () => {
-  const boneSrc = [
-    {
-      pos: {
-        x: 0,
-        y: 0.90625,
-        z: -1.1098361617272889e-16,
-      },
-      id: 0,
-      name: "root",
-      parent: -1,
-    },
-    {
-      pos: {
-        x: 0,
-        y: 0.2575,
-        z: -3.153465507804434e-17,
-      },
-      id: 1,
-      name: "head",
-      parent: 0,
-    },
-    {
-      pos: {
-        x: -0.17500000000000002,
-        y: 0.1625,
-        z: -0.01250000000000002,
-      },
-      id: 2,
-      name: "rght_shoulder",
-      parent: 0,
-    },
-    {
-      pos: {
-        x: -0.025,
-        y: -0.2,
-        z: 2.4492935982947065e-17,
-      },
-      id: 3,
-      name: "right_elbow",
-      parent: 2,
-    },
-    {
-      pos: {
-        x: 0,
-        y: -0.1525,
-        z: 1.8675863686997135e-17,
-      },
-      id: 4,
-      name: "right_hand",
-      parent: 3,
-    },
-    {
-      pos: {
-        x: 0.17500000000000002,
-        y: 0.1625,
-        z: -0.01250000000000002,
-      },
-      id: 5,
-      name: "left_shoulder",
-      parent: 0,
-    },
-    {
-      pos: {
-        x: 0.025,
-        y: -0.2,
-        z: 2.4492935982947065e-17,
-      },
-      id: 6,
-      name: "left_elbow",
-      parent: 5,
-    },
-    {
-      pos: {
-        x: 0,
-        y: -0.1525,
-        z: 1.8675863686997135e-17,
-      },
-      id: 7,
-      name: "left_hand",
-      parent: 6,
-    },
-    {
-      pos: {
-        x: 0,
-        y: 0,
-        z: 0,
-      },
-      id: 8,
-      name: "hips",
-      parent: 0,
-    },
-    {
-      pos: {
-        x: -0.08125,
-        y: -0.09125,
-        z: 1.1174902042219598e-17,
-      },
-      id: 9,
-      name: "right_leg",
-      parent: 8,
-    },
-    {
-      pos: {
-        x: 0,
-        y: -0.28125,
-        z: 3.444319122601931e-17,
-      },
-      id: 10,
-      name: "right_knee",
-      parent: 9,
-    },
-    {
-      pos: {
-        x: 0,
-        y: -0.34875,
-        z: 4.2709557120263944e-17,
-      },
-      id: 11,
-      name: "right_foot",
-      parent: 10,
-    },
-    {
-      pos: {
-        x: 0.08125,
-        y: -0.09125,
-        z: 1.1174902042219598e-17,
-      },
-      id: 12,
-      name: "left_leg",
-      parent: 8,
-    },
-    {
-      pos: {
-        x: 0,
-        y: -0.28125,
-        z: 3.444319122601931e-17,
-      },
-      id: 13,
-      name: "left_knee",
-      parent: 12,
-    },
-    {
-      pos: {
-        x: 0,
-        y: -0.34875,
-        z: 4.2709557120263944e-17,
-      },
-      id: 14,
-      name: "left_foot",
-      parent: 13,
-    },
-  ];
-
-  const bones: THREE.Bone[] = [];
-  boneSrc.forEach((src) => {
-    const bone = new THREE.Bone();
-
-    bone.position.x = src.pos.x;
-    bone.position.y = src.pos.y;
-    bone.position.z = src.pos.z;
-    bone.name = src.name;
-
-    if (bones[src.parent]) {
-      bones[src.parent].add(bone);
-    }
-
-    bones.push(bone);
-  });
-
-  bones.forEach((bone) => {
-    bone.updateMatrix();
-    bone.updateMatrixWorld();
-  });
-
-  const skel = new THREE.Skeleton(bones);
-  const geo = new THREE.BufferGeometry();
-  const skin = new THREE.SkinnedMesh(geo);
-  const rootBone = skel.bones[0];
-  skin.add(rootBone);
-  return skin;
-};
 
 // Initialize camera
 const camera = new THREE.PerspectiveCamera(
@@ -279,6 +97,26 @@ selectedCharacter.subscribe(async (character) => {
     const m = meshes.pop();
     m && scene.remove(m);
   }
+
+  const exporter = new GLTFExporter();
+
+  // Export the group
+  exporter.parse(
+    group,
+    (result: any) => {
+      // If result is a binary buffer
+      const json = JSON.stringify(result, null, 2);
+      const blob = new Blob([json], { type: 'application/json' });
+      const link = document.createElement('a');
+      link.href = URL.createObjectURL(blob);
+      link.download = 'model.gltf';
+      link.click();
+    },
+    // Optional options for GLTFExporter
+    {
+      binary: false, // Set to true if you want a binary .glb file, false for .gltf
+    }
+  );
 
 
   scene.add(group);
