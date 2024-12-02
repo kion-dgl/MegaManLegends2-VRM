@@ -182,9 +182,15 @@ const loadCharacter = async (filename: string): Promise<Group> => {
     "05_LEG_LEFT_BOTTOM",
   ]);
 
+  // Then we read the body
+  const HEAD_OFS = 0xb60;
+  const headStrips = readStrips(view, HEAD_OFS, [
+    "10_HELMET", "11_FACE", "12_MOUTH"
+  ]);
+
   console.log(bodyStrips);
 
-  const bodyMesh = bodyStrips.map((strip) => {
+  const createMesh = (strip: MeshHeader) => {
     const { vertexCount, vertexOfs } = strip;
     const vertexList = readVertexList(view, vertexOfs, vertexCount);
     const { activeVertexColorOfs } = strip;
@@ -233,7 +239,11 @@ const loadCharacter = async (filename: string): Promise<Group> => {
     const material = new MeshNormalMaterial();
     const mesh = new Mesh(geometry, material);
     return mesh;
-  });
+  }
+
+  // Generate Mesh from Headers
+  const bodyMesh = bodyStrips.map(createMesh);
+  const headMesh = headStrips.map(createMesh);
 
 
   // Create group
@@ -242,12 +252,16 @@ const loadCharacter = async (filename: string): Promise<Group> => {
   // parentGroup.add(skin);
   group.add(helper);
 
+
   // Body
   const root = skin.children[0]
   root.add(bodyMesh[0])
   bodyMesh[0].position.x = root.position.x;
   bodyMesh[0].position.y = root.position.y;
   bodyMesh[0].position.z = root.position.z;
+
+  console.log('root')
+  console.log(root.children)
 
   // Hips
   const hips = root.children[3]
@@ -274,6 +288,16 @@ const loadCharacter = async (filename: string): Promise<Group> => {
   leftKnee.add(bodyMesh[5])
   leftKnee.getWorldPosition(bodyMesh[5].position);
 
+  // Head
+  const head = root.children[0];
+  head.add(headMesh[0])
+  head.getWorldPosition(headMesh[0].position)
+  head.add(headMesh[1])
+  head.getWorldPosition(headMesh[1].position)
+  head.add(headMesh[2])
+  head.getWorldPosition(headMesh[2].position)
+
+
   console.log('hit to be square')
   console.log(hips.children)
 
@@ -283,6 +307,10 @@ const loadCharacter = async (filename: string): Promise<Group> => {
   group.add(bodyMesh[3]);
   group.add(bodyMesh[4]);
   group.add(bodyMesh[5]);
+
+  group.add(headMesh[0]);
+  group.add(headMesh[1]);
+  group.add(headMesh[2]);
 
   group.rotation.x = Math.PI;
   return group;
