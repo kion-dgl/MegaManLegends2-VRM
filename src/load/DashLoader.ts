@@ -37,6 +37,151 @@ type Indice = {
 // Global Scale
 const SCALE = 0.00125;
 
+const names = [
+  // Root (body)
+  {
+    id: 0,
+    parent: -1,
+    name: "root",
+  },
+  // Head
+  {
+    id: 1,
+    parent: 0,
+    name: "head",
+  },
+  // Right arm - From the shoulder
+  {
+    id: 2,
+    parent: 0,
+    name: "right_shoulder",
+  },
+  // Right elbow
+  {
+    id: 3,
+    parent: 2,
+    name: "right_elbow",
+  },
+  // Right hand
+  {
+    id: 4,
+    parent: 3,
+    name: "right_hand",
+  },
+  // Left arm - From the shoulder (needs adjusts)
+  {
+    id: 5,
+    parent: 0,
+    name: "left_shoulder",
+  },
+  // Left Elbow
+  {
+    id: 6,
+    parent: 5,
+    name: "left_elbow",
+  },
+  // Left hand
+  {
+    id: 7,
+    parent: 6,
+    name: "left_hand",
+  },
+  // Hip Bone
+  {
+    id: 8,
+    parent: 0,
+    name: "hips",
+  },
+  // Right Leg
+  {
+    id: 9,
+    parent: 8,
+    name: "right_leg",
+  },
+  // Right Knee
+  {
+    id: 10,
+    parent: 9,
+    name: "right_knee",
+  },
+  // Right Foot
+  {
+    id: 11,
+    parent: 10,
+    name: "right_foot",
+  },
+  // Left Leg
+  {
+    id: 12,
+    parent: 8,
+    name: "left_leg",
+  },
+  // Left Knee
+  {
+    id: 13,
+    parent: 12,
+    name: "left_knee",
+  },
+  // Left Foot
+  {
+    id: 14,
+    parent: 13,
+    name: "left_foot",
+  },
+];
+
+const createMesh = (strip: MeshHeader, view: DataView) => {
+  const { vertexCount, vertexOfs } = strip;
+  const vertexList = readVertexList(view, vertexOfs, vertexCount);
+  const { activeVertexColorOfs } = strip;
+  const colors = readVertexColors(view, activeVertexColorOfs, vertexCount);
+  const { triCount, triOfs } = strip;
+  const triangleFaces = readFace(view, triOfs, triCount, false);
+  const { quadCount, quadOfs } = strip;
+  const quadFaces = readFace(view, quadOfs, quadCount, true);
+
+  // Create a new BufferGeometry
+  const geometry = new BufferGeometry();
+
+  // Convert vertexList to a Float32Array for the positions attribute
+  const positions = new Float32Array(vertexList.length * 3);
+  vertexList.forEach((vertex, i) => {
+    positions[i * 3] = vertex.x;
+    positions[i * 3 + 1] = vertex.y;
+    positions[i * 3 + 2] = vertex.z;
+  });
+  geometry.setAttribute("position", new BufferAttribute(positions, 3));
+
+  // Convert colors to a Float32Array for the color attribute
+  if (colors) {
+    const colorArray = new Float32Array(colors.length * 3);
+    colors.forEach((color, i) => {
+      colorArray[i * 3] = color.r;
+      colorArray[i * 3 + 1] = color.g;
+      colorArray[i * 3 + 2] = color.b;
+    });
+    geometry.setAttribute("color", new BufferAttribute(colorArray, 3));
+  }
+
+  // Combine triangles and quads into a single index array
+  const indices: number[] = [];
+  triangleFaces.forEach((face) =>
+    indices.push(face[0].index, face[1].index, face[2].index),
+  );
+  quadFaces.forEach((face) =>
+    indices.push(face[0].index, face[1].index, face[2].index),
+  );
+
+  // Set the indices to the geometry
+  geometry.setIndex(indices);
+  geometry.computeVertexNormals();
+
+  const material = new MeshNormalMaterial();
+  const mesh = new Mesh(geometry, material);
+  return mesh;
+}
+
+
 const loadCharacter = async (filename: string): Promise<Group> => {
   const req = await fetch(`/MegaManLegends2-VRM/${filename}`);
   if (!req.ok) {
@@ -51,98 +196,7 @@ const loadCharacter = async (filename: string): Promise<Group> => {
   const file = buffer.slice(0x30, 0x30 + length);
   const view = new DataView(file);
 
-  const names = [
-    // Root (body)
-    {
-      id: 0,
-      parent: -1,
-      name: "root",
-    },
-    // Head
-    {
-      id: 1,
-      parent: 0,
-      name: "head",
-    },
-    // Right arm - From the shoulder
-    {
-      id: 2,
-      parent: 0,
-      name: "right_shoulder",
-    },
-    // Right elbow
-    {
-      id: 3,
-      parent: 2,
-      name: "right_elbow",
-    },
-    // Right hand
-    {
-      id: 4,
-      parent: 3,
-      name: "right_hand",
-    },
-    // Left arm - From the shoulder (needs adjusts)
-    {
-      id: 5,
-      parent: 0,
-      name: "left_shoulder",
-    },
-    // Left Elbow
-    {
-      id: 6,
-      parent: 5,
-      name: "left_elbow",
-    },
-    // Left hand
-    {
-      id: 7,
-      parent: 6,
-      name: "left_hand",
-    },
-    // Hip Bone
-    {
-      id: 8,
-      parent: 0,
-      name: "hips",
-    },
-    // Right Leg
-    {
-      id: 9,
-      parent: 8,
-      name: "right_leg",
-    },
-    // Right Knee
-    {
-      id: 10,
-      parent: 9,
-      name: "right_knee",
-    },
-    // Right Foot
-    {
-      id: 11,
-      parent: 10,
-      name: "right_foot",
-    },
-    // Left Leg
-    {
-      id: 12,
-      parent: 8,
-      name: "left_leg",
-    },
-    // Left Knee
-    {
-      id: 13,
-      parent: 12,
-      name: "left_knee",
-    },
-    // Left Foot
-    {
-      id: 14,
-      parent: 13,
-      name: "left_foot",
-    },
-  ];
+
 
   // First we read bones
   let ofs = 0x00;
@@ -188,62 +242,37 @@ const loadCharacter = async (filename: string): Promise<Group> => {
     "10_HELMET", "11_FACE", "12_MOUTH"
   ]);
 
-  console.log(bodyStrips);
+  // Then we read the body
+  const FEET_OFS = 0x1800;
+  const feetStrips = readStrips(view, FEET_OFS, [
+    "20_FOOT_RIGHT", "21_FOOT_LEFT"
+  ]);
 
-  const createMesh = (strip: MeshHeader) => {
-    const { vertexCount, vertexOfs } = strip;
-    const vertexList = readVertexList(view, vertexOfs, vertexCount);
-    const { activeVertexColorOfs } = strip;
-    const colors = readVertexColors(view, activeVertexColorOfs, vertexCount);
-    const { triCount, triOfs } = strip;
-    const triangleFaces = readFace(view, triOfs, triCount, false);
-    const { quadCount, quadOfs } = strip;
-    const quadFaces = readFace(view, quadOfs, quadCount, true);
+  // Then we read the body
+  const LEFT_OFS = 0x1dd0;
+  const leftArmStrips = readStrips(view, LEFT_OFS, [
+    "30_LEFT_SHOULDER", "31_LEFT_ARM", "32_LEFT_HAND"
+  ]);
 
-    // Create a new BufferGeometry
-    const geometry = new BufferGeometry();
+  // Then we read the body
+  const BUSTER_OFS = 0x2220;
+  const busterStrips = readStrips(view, BUSTER_OFS, [
+    "40_LEFT_SHOULDER", "41_BUSTER", "42_BULLET_MAYBE"
+  ]);
 
-    // Convert vertexList to a Float32Array for the positions attribute
-    const positions = new Float32Array(vertexList.length * 3);
-    vertexList.forEach((vertex, i) => {
-      positions[i * 3] = vertex.x;
-      positions[i * 3 + 1] = vertex.y;
-      positions[i * 3 + 2] = vertex.z;
-    });
-    geometry.setAttribute("position", new BufferAttribute(positions, 3));
-
-    // Convert colors to a Float32Array for the color attribute
-    if (colors) {
-      const colorArray = new Float32Array(colors.length * 3);
-      colors.forEach((color, i) => {
-        colorArray[i * 3] = color.r;
-        colorArray[i * 3 + 1] = color.g;
-        colorArray[i * 3 + 2] = color.b;
-      });
-      geometry.setAttribute("color", new BufferAttribute(colorArray, 3));
-    }
-
-    // Combine triangles and quads into a single index array
-    const indices: number[] = [];
-    triangleFaces.forEach((face) =>
-      indices.push(face[0].index, face[1].index, face[2].index),
-    );
-    quadFaces.forEach((face) =>
-      indices.push(face[0].index, face[1].index, face[2].index),
-    );
-
-    // Set the indices to the geometry
-    geometry.setIndex(indices);
-    geometry.computeVertexNormals();
-
-    const material = new MeshNormalMaterial();
-    const mesh = new Mesh(geometry, material);
-    return mesh;
-  }
+  // Then we read the body
+  const RIGHT_OFS = 0x26f0;
+  const rightArmStrips = readStrips(view, RIGHT_OFS, [
+    "50_RIGHT_SHOULDER", "51_RIGHT_ARM", "52_RIGHT_HAND"
+  ]);
 
   // Generate Mesh from Headers
-  const bodyMesh = bodyStrips.map(createMesh);
-  const headMesh = headStrips.map(createMesh);
+  const bodyMesh = bodyStrips.map(strip => createMesh(strip, view));
+  const headMesh = headStrips.map(strip => createMesh(strip, view));
+  const feetMesh = feetStrips.map(strip => createMesh(strip, view));
+  const leftArmMesh = leftArmStrips.map(strip => createMesh(strip, view));
+  const busterMesh = busterStrips.map(strip => createMesh(strip, view));
+  const rightArmMesh = rightArmStrips.map(strip => createMesh(strip, view));
 
 
   // Create group
@@ -283,7 +312,7 @@ const loadCharacter = async (filename: string): Promise<Group> => {
   leftLeg.add(bodyMesh[4])
   leftLeg.getWorldPosition(bodyMesh[4].position);
 
-  // Right Knee
+  // Left Knee
   const leftKnee = leftLeg.children[0];
   leftKnee.add(bodyMesh[5])
   leftKnee.getWorldPosition(bodyMesh[5].position);
@@ -297,10 +326,43 @@ const loadCharacter = async (filename: string): Promise<Group> => {
   head.add(headMesh[2])
   head.getWorldPosition(headMesh[2].position)
 
+  // Right Foot
+  const rightFoot = rightKnee.children[0];
+  rightFoot.add(feetMesh[0])
+  rightFoot.getWorldPosition(feetMesh[0].position);
 
-  console.log('hit to be square')
-  console.log(hips.children)
+  // Left Foot
+  const leftFoot = leftKnee.children[0];
+  leftFoot.add(feetMesh[1])
+  leftFoot.getWorldPosition(feetMesh[1].position);
 
+  // left Arm
+  const leftShoulder = root.children[2];
+  leftShoulder.add(leftArmMesh[0])
+  leftShoulder.getWorldPosition(leftArmMesh[0].position);
+
+  const leftElbow = leftShoulder.children[0];
+  leftElbow.add(leftArmMesh[1])
+  leftElbow.getWorldPosition(leftArmMesh[1].position);
+
+  const leftHand = leftElbow.children[0];
+  leftHand.add(leftArmMesh[2])
+  leftHand.getWorldPosition(leftArmMesh[2].position);
+
+  // right Arm
+  const rightShoulder = root.children[1];
+  rightShoulder.add(rightArmMesh[0])
+  rightShoulder.getWorldPosition(rightArmMesh[0].position);
+
+  const rightElbow = rightShoulder.children[0];
+  rightElbow.add(rightArmMesh[1])
+  rightElbow.getWorldPosition(rightArmMesh[1].position);
+
+  const rightHand = rightElbow.children[0];
+  rightHand.add(rightArmMesh[2])
+  rightHand.getWorldPosition(rightArmMesh[2].position);
+
+  //group.add(skin);
   group.add(bodyMesh[0]);
   group.add(bodyMesh[1]);
   group.add(bodyMesh[2]);
@@ -311,6 +373,17 @@ const loadCharacter = async (filename: string): Promise<Group> => {
   group.add(headMesh[0]);
   group.add(headMesh[1]);
   group.add(headMesh[2]);
+
+  group.add(feetMesh[0]);
+  group.add(feetMesh[1]);
+
+  group.add(leftArmMesh[0])
+  group.add(leftArmMesh[1])
+  group.add(leftArmMesh[2])
+
+  group.add(rightArmMesh[0])
+  group.add(rightArmMesh[1])
+  group.add(rightArmMesh[2])
 
   group.rotation.x = Math.PI;
   return group;
