@@ -2,7 +2,8 @@ import * as THREE from "three";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
 import { selectedCharacter } from "../stores/characterStore";
 import { loadCharacter } from "../load/DashLoader";
-import { GLTFExporter } from 'three/examples/jsm/exporters/GLTFExporter';
+import { loadTexture } from "../load/DashTexture"
+// import { GLTFExporter } from 'three/examples/jsm/exporters/GLTFExporter';
 
 const scene = new THREE.Scene();
 const meshes: THREE.Mesh[] = [];
@@ -100,7 +101,8 @@ selectedCharacter.subscribe(async (character) => {
     );
   }
   const buffer = await req.arrayBuffer();
-  console.log(buffer)
+  const canvas = loadTexture(buffer);
+  document.body.appendChild(canvas)
 
   const group = await loadCharacter(file);
 
