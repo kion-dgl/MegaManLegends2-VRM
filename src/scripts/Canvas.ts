@@ -91,32 +91,43 @@ scene.add(gridHelper);
 selectedCharacter.subscribe(async (character) => {
   if (!character) return;
 
-  const group = await loadCharacter(character.file);
+  const { file, texture } = character;
+  const req = await fetch(`/MegaManLegends2-VRM/${texture}`);
+  if (!req.ok) {
+    // Handle HTTP errors
+    throw new Error(
+      `Failed to load ${texture}: ${req.status} ${req.statusText}`,
+    );
+  }
+  const buffer = await req.arrayBuffer();
+  console.log(buffer)
+
+  const group = await loadCharacter(file);
 
   while (meshes.length) {
     const m = meshes.pop();
     m && scene.remove(m);
   }
 
-  const exporter = new GLTFExporter();
+  // const exporter = new GLTFExporter();
 
-  // Export the group
-  exporter.parse(
-    group,
-    (result: any) => {
-      // If result is a binary buffer
-      const json = JSON.stringify(result, null, 2);
-      const blob = new Blob([json], { type: 'application/json' });
-      const link = document.createElement('a');
-      link.href = URL.createObjectURL(blob);
-      link.download = 'model.gltf';
-      link.click();
-    },
-    // Optional options for GLTFExporter
-    {
-      binary: false, // Set to true if you want a binary .glb file, false for .gltf
-    }
-  );
+  // // Export the group
+  // exporter.parse(
+  //   group,
+  //   (result: any) => {
+  //     // If result is a binary buffer
+  //     const json = JSON.stringify(result, null, 2);
+  //     const blob = new Blob([json], { type: 'application/json' });
+  //     const link = document.createElement('a');
+  //     link.href = URL.createObjectURL(blob);
+  //     link.download = 'model.gltf';
+  //     link.click();
+  //   },
+  //   // Optional options for GLTFExporter
+  //   {
+  //     binary: false, // Set to true if you want a binary .glb file, false for .gltf
+  //   }
+  // );
 
 
   scene.add(group);

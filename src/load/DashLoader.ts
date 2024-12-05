@@ -210,8 +210,6 @@ const loadCharacter = async (filename: string): Promise<Group> => {
     bone.position.y = view.getInt16(ofs + 2, true) * SCALE;
     bone.position.z = view.getInt16(ofs + 4, true) * SCALE;
 
-    console.log(bone.position);
-
     ofs += 6;
     if (bones[parent]) {
       bones[parent].add(bone);
@@ -289,9 +287,6 @@ const loadCharacter = async (filename: string): Promise<Group> => {
   bodyMesh[0].position.x = root.position.x;
   bodyMesh[0].position.y = root.position.y;
   bodyMesh[0].position.z = root.position.z;
-
-  console.log('root')
-  console.log(root.children)
 
   // Hips
   const hips = root.children[3]

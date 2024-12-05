@@ -5,12 +5,13 @@ import { selectedCharacter } from '../stores/characterStore';
 interface Character {
   name: string;
   file: string;
+  texture: string;
 }
 
 const characters = [
-  { name: "MegaMan", file: "PL00P000.BIN" },
-  { name: "Roll", file: "PL01.BIN" },
-  { name: "Tron", file: "PL02.BIN" }
+  { name: "MegaMan", file: "PL00P000.BIN", texture: "PL00T.BIN" },
+  { name: "Roll", file: "PL01.BIN", texture: "PL00T.BIN" },
+  { name: "Tron", file: "PL02.BIN", texture: "PL00T.BIN" }
 ]
 
 export function CharacterSelect() {
@@ -22,7 +23,6 @@ export function CharacterSelect() {
   const handleSelect = useCallback((character: Character) => {
     setSelected(character);
     setIsOpen(false);
-    console.log(character)
     selectedCharacter.set(character);
   }, []);
 
