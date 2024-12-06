@@ -101,8 +101,14 @@ selectedCharacter.subscribe(async (character) => {
     );
   }
   const buffer = await req.arrayBuffer();
+
+  const holder = document.createElement('div');
+  holder.setAttribute('class', 'fixed right-10 top-10 z-100')
+
   const canvas = loadTexture(buffer);
-  document.body.appendChild(canvas)
+  holder.appendChild(canvas)
+
+  document.body.appendChild(holder)
 
   const group = await loadCharacter(file);
 

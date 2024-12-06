@@ -9,10 +9,7 @@ const wordToColor = (word: number): string => {
 };
 
 
-const loadTexture = (buffer: ArrayBuffer) => {
-
-    const src = Buffer.from(buffer)
-    // const view = new DataView(buffer);
+const unpackTexture = (src: Buffer) => {
 
     const tim = {
         type: src.readUInt32LE(0x00),
@@ -88,49 +85,53 @@ const loadTexture = (buffer: ArrayBuffer) => {
     // Read palette
     ofs = 0;
     const { colorCount, paletteCount } = tim;
-    const palette: string[][] = new Array();
-    for (let i = 0; i < paletteCount; i++) {
-        palette[i] = new Array();
-        for (let k = 0; k < colorCount; k++) {
-            const word = target.readUInt16LE(ofs);
-            ofs += 2;
-            palette[i].push(wordToColor(word));
-        }
+    const palette: string[] = new Array();
+    for (let i = 0; i < paletteCount * colorCount; i++) {
+        const word = target.readUInt16LE(ofs);
+        ofs += 2;
+        palette.push(wordToColor(word));
     }
 
     // Read image data
     const imageData: number[] = new Array();
     for (ofs; ofs < target.length; ofs++) {
         const byte = target.readUInt8(ofs);
-        if (colorCount === 256) {
-            imageData.push(byte);
-        } else {
-            imageData.push(byte & 0xf);
-            imageData.push(byte >> 4);
-        }
+        imageData.push(byte & 0xf);
+        imageData.push(byte >> 4);
     }
 
+    return { palette, imageData }
+}
+
+const renderTexture = (imageData: number[], palette: string[]) => {
+
+    const WIDTH = 256;
+    const HEIGHT = 256;
+
     // Render Canvas
-    const { width, height } = tim;
     const canvas = document.createElement('canvas');
-    canvas.width = 256;
-    canvas.height = 256;
+    canvas.width = WIDTH;
+    canvas.height = HEIGHT;
     const ctx = canvas.getContext('2d')
-    canvas.setAttribute('class', 'fixed right-10 top-10 z-100')
 
     let index = 0;
-    let dst = 0;
-    for (let y = 0; y < height; y++) {
-        for (var x = 0; x < width; x++) {
+    for (let y = 0; y < HEIGHT; y++) {
+        for (let x = 0; x < WIDTH; x++) {
             const colorIndex = imageData[index++];
-            const color = palette[0][colorIndex!];
+            const color = palette[colorIndex!];
             ctx!.fillStyle = color;
             ctx!.fillRect(x, y, 1, 1)
         }
     }
 
-
     return canvas;
+}
+
+const loadTexture = (buffer: ArrayBuffer) => {
+    const src = Buffer.from(buffer)
+    const bodyTexture = unpackTexture(src);
+    const bodyCanvas = renderTexture(bodyTexture.imageData, bodyTexture.palette);
+    return bodyCanvas;
 }
 
 export { loadTexture };
