@@ -105,8 +105,10 @@ selectedCharacter.subscribe(async (character) => {
   const holder = document.createElement('div');
   holder.setAttribute('class', 'fixed right-10 top-10 z-100')
 
-  const canvas = loadTexture(buffer);
-  holder.appendChild(canvas)
+  const canvi = loadTexture(buffer);
+  canvi.forEach(canvas => {
+    holder.appendChild(canvas)
+  })
 
   document.body.appendChild(holder)
 
