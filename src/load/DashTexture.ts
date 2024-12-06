@@ -39,23 +39,22 @@ const readPalette = (src: Buffer, offset: number) => {
 }
 
 
-const unpackTexture = (src: Buffer) => {
+const unpackTexture = (src: Buffer, offset: number) => {
 
     const tim = {
-        type: src.readUInt32LE(0x00),
-        fullSize: src.readUInt32LE(0x04),
-        paletteX: src.readUInt16LE(0x0c),
-        paletteY: src.readUInt16LE(0x0e),
-        colorCount: src.readUInt16LE(0x10),
-        paletteCount: src.readUInt16LE(0x12),
-        imageX: src.readUInt16LE(0x14),
-        imageY: src.readUInt16LE(0x16),
-        width: src.readUInt16LE(0x18),
-        height: src.readUInt16LE(0x1a),
-        bitfieldSize: src.readUInt16LE(0x24),
-        payloadSize: src.readUInt16LE(0x26),
+        type: src.readUInt32LE(0x00 + offset),
+        fullSize: src.readUInt32LE(0x04 + offset),
+        paletteX: src.readUInt16LE(0x0c + offset),
+        paletteY: src.readUInt16LE(0x0e + offset),
+        colorCount: src.readUInt16LE(0x10 + offset),
+        paletteCount: src.readUInt16LE(0x12 + offset),
+        imageX: src.readUInt16LE(0x14 + offset),
+        imageY: src.readUInt16LE(0x16 + offset),
+        width: src.readUInt16LE(0x18 + offset),
+        height: src.readUInt16LE(0x1a + offset),
+        bitfieldSize: src.readUInt16LE(0x24 + offset),
+        payloadSize: src.readUInt16LE(0x26 + offset),
     };
-
 
     const { fullSize, bitfieldSize } = tim;
     const bitfield: number[] = new Array();
@@ -63,14 +62,13 @@ const unpackTexture = (src: Buffer) => {
 
     // Read Bitfield
 
-    let ofs = 0x30;
+    let ofs = offset + 0x30;
     for (let i = 0; i < bitfieldSize; i += 4) {
         const dword = src.readUInt32LE(ofs + i);
         for (let k = 31; k > -1; k--) {
             bitfield.push(dword & (1 << k) ? 1 : 0);
         }
     }
-
     ofs += bitfieldSize;
 
     // Decompress
@@ -161,7 +159,8 @@ const loadTexture = (buffer: ArrayBuffer) => {
     const src = Buffer.from(buffer)
 
     // Read body
-    const bodyTexture = unpackTexture(src);
+    const BODY_TEX_OFS = 0x00;
+    const bodyTexture = unpackTexture(src, BODY_TEX_OFS);
     const bodyCanvas = renderTexture(bodyTexture.imageData, bodyTexture.palette);
 
     // read body alternare palette
@@ -169,7 +168,12 @@ const loadTexture = (buffer: ArrayBuffer) => {
     const bodyPalette = readPalette(src, BODY_PAL_OFS)
     const bodyAltCanvas = renderTexture(bodyTexture.imageData, bodyPalette);
 
-    return [bodyCanvas, bodyAltCanvas];
+    // read face texture
+    const FACE_TEX_OFS = 0x3800;
+    const faceTexture = unpackTexture(src, FACE_TEX_OFS);
+    const faceCanvas = renderTexture(faceTexture.imageData, faceTexture.palette);
+
+    return [bodyCanvas, bodyAltCanvas, faceCanvas];
 }
 
 export { loadTexture };
