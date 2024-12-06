@@ -2,6 +2,7 @@ import {
   Mesh,
   Bone,
   Vector3,
+  CanvasTexture,
   Color,
   BufferGeometry,
   Float32BufferAttribute,
@@ -131,7 +132,7 @@ const names = [
   },
 ];
 
-const createMesh = (strip: MeshHeader, view: DataView) => {
+const createMesh = (strip: MeshHeader, view: DataView, material: MeshBasicMaterial) => {
   const { vertexCount, vertexOfs } = strip;
   const vertexList = readVertexList(view, vertexOfs, vertexCount);
   const { activeVertexColorOfs } = strip;
@@ -177,13 +178,12 @@ const createMesh = (strip: MeshHeader, view: DataView) => {
   geometry.setIndex(indices);
   geometry.computeVertexNormals();
 
-  const material = new MeshBasicMaterial();
   const mesh = new Mesh(geometry, material);
   return mesh;
 }
 
 
-const loadCharacter = async (filename: string): Promise<Group> => {
+const loadCharacter = async (filename: string, canvas: HTMLCanvasElement[]): Promise<Group> => {
   const req = await fetch(`/MegaManLegends2-VRM/${filename}`);
   if (!req.ok) {
     // Handle HTTP errors
@@ -265,13 +265,19 @@ const loadCharacter = async (filename: string): Promise<Group> => {
     "50_RIGHT_SHOULDER", "51_RIGHT_ARM", "52_RIGHT_HAND"
   ]);
 
+  const texture = new CanvasTexture(canvas[0]);
+  texture.needsUpdate = true;
+  const material = new MeshBasicMaterial({
+    map: texture
+  });
+
   // Generate Mesh from Headers
-  const bodyMesh = bodyStrips.map(strip => createMesh(strip, view));
-  const headMesh = headStrips.map(strip => createMesh(strip, view));
-  const feetMesh = feetStrips.map(strip => createMesh(strip, view));
-  const leftArmMesh = leftArmStrips.map(strip => createMesh(strip, view));
-  const busterMesh = busterStrips.map(strip => createMesh(strip, view));
-  const rightArmMesh = rightArmStrips.map(strip => createMesh(strip, view));
+  const bodyMesh = bodyStrips.map(strip => createMesh(strip, view, material));
+  const headMesh = headStrips.map(strip => createMesh(strip, view, material));
+  const feetMesh = feetStrips.map(strip => createMesh(strip, view, material));
+  const leftArmMesh = leftArmStrips.map(strip => createMesh(strip, view, material));
+  const busterMesh = busterStrips.map(strip => createMesh(strip, view, material));
+  const rightArmMesh = rightArmStrips.map(strip => createMesh(strip, view, material));
 
 
   // Create group

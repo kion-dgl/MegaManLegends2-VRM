@@ -112,7 +112,7 @@ selectedCharacter.subscribe(async (character) => {
 
   document.body.appendChild(holder)
 
-  const group = await loadCharacter(file);
+  const group = await loadCharacter(file, canvi);
 
   while (meshes.length) {
     const m = meshes.pop();
